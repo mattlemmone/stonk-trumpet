@@ -9,11 +9,24 @@ class Config:
         load_dotenv()
         
         # Configure logging
-        logging.basicConfig(
-            level=logging.INFO, 
-            format='%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
+        # Create formatter with timestamp including milliseconds
+        formatter = logging.Formatter(
+            fmt='%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
+        
+        # Configure root logger
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        
+        # Remove any existing handlers to avoid duplicates
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+            
+        # Add console handler with our formatter
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        root_logger.addHandler(console_handler)
         
         # API credentials
         self.truthsocial_username = os.getenv("TRUTHSOCIAL_USERNAME")

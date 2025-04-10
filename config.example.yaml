@@ -1,0 +1,31 @@
+# Stonk Trumpet Configuration Example
+
+# Truth Social API endpoint (leave %s for account ID)
+api_endpoint: "https://truthsocial.com/api/v1/accounts/%s/statuses?with_muted=true"
+
+# Truth Social Account ID to monitor
+# Example: 107780257626128497 for @realDonaldTrump
+account_id: "107780257626128497"
+
+# OpenAI API Key
+# Preferably set this as an environment variable OPENAI_API_KEY instead of in this file
+openai_key: "YOUR_OPENAI_API_KEY_HERE" # Replace with your actual key if not using environment variable
+
+# Polling interval in seconds
+poll_interval_sec: 60
+
+# Notification settings
+notify_method: "log" # Options: "log", "sms" (planned)
+notify_target: "" # e.g., Phone number for SMS (like "+15551234567")
+
+# Path to the file used for storing processed tweet IDs
+persistence_file: "processed_tweets.json"
+
+# Timezone for restricting polling hours (e.g., 7am-midnight)
+# Use valid TZ database names (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+timezone: "America/New_York"
+# --- Planned future config ---
+# sms_config:
+#   account_sid: "YOUR_TWILIO_ACCOUNT_SID"
+#   auth_token: "YOUR_TWILIO_AUTH_TOKEN"
+#   from_number: "YOUR_TWILIO_PHONE_NUMBER"

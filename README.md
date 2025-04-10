@@ -14,6 +14,20 @@ This Python application monitors a specified Truth Social account during configu
 - Sends notifications via ntfy.sh for statuses classified as having significant positive or negative market impact.
 - Persistently tracks the last processed status ID to avoid reprocessing, ensuring continuity across restarts.
 - Configurable via environment variables or a `.env` file.
+- Modular architecture with clear separation of concerns.
+
+## Project Structure
+
+The application has been modularized into the following components:
+
+- `config.py` - Configuration management
+- `persistence.py` - Handling of status ID persistence
+- `api_client.py` - Truth Social API interactions
+- `sentiment_analyzer.py` - OpenAI-based sentiment analysis
+- `notifier.py` - Notification service
+- `scheduler.py` - Time-based scheduling logic
+- `processor.py` - Core business logic for processing statuses
+- `main.py` - Application entry point
 
 ## Configuration
 
@@ -61,7 +75,19 @@ Notifications include:
 
 ## Running the Application
 
-Simply run the `main.py` script. The application will start logging its activity to the console and will send notifications via ntfy.sh when significant market impacts are detected.
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the application:
+
+```bash
+python main.py
+```
+
+The application will start logging its activity to the console and will send notifications via ntfy.sh when significant market impacts are detected.
 
 To stop the application gracefully, press `Ctrl+C`. This will save the last processed ID before exiting.
 
@@ -69,7 +95,7 @@ To stop the application gracefully, press `Ctrl+C`. This will save the last proc
 
 The application stores the ID of the most recent status it has processed in the `last_processed_id.txt` file. When starting, it reads this ID. When fetching new statuses, it only processes statuses with an ID greater than the stored one (assuming IDs are chronologically sortable).
 
-**Important Note:** This method assumes status IDs are reliably sequential or sortable. It also means if the script is stopped for a long time, it might miss statuses if more than the API's page limit (typically 20-40) were posted during the downtime. A more robust solution would involve storing all processed IDs or using API features like `since_id` if available and reliable in `truthbrush`.
+**Important Note:** This method assumes status IDs are reliably sequential or sortable. It also means if the script is stopped for a long time, it might miss statuses if more than the API's page limit (typically 20-40) were posted during the downtime.
 
 ## Customization
 
@@ -77,5 +103,5 @@ The application stores the ID of the most recent status it has processed in the 
 - **Polling Window:** Adjust `POLL_START_HOUR` and `POLL_END_HOUR` (0-23) in `.env`.
 - **Polling Frequency:** Change `POLL_INTERVAL_SECONDS` in `.env`.
 - **Notification Topic:** Change `NTFY_TOPIC` in `.env` to use a different notification channel.
-- **Analysis Model:** Change the `model` parameter in the `analyze_sentiment` function (e.g., to `"gpt-4"`) if desired.
-- **Analysis Prompt:** Refine the `system_prompt` in `analyze_sentiment` to tailor the analysis criteria.
+- **Analysis Model:** Change the `model` parameter in the `SentimentAnalyzer.analyze` method (e.g., to `"gpt-4"`) if desired.
+- **Analysis Prompt:** Refine the `system_prompt` in `SentimentAnalyzer.analyze` to tailor the analysis criteria.

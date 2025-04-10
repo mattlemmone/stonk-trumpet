@@ -1,4 +1,5 @@
 truthbrush
 openai
 python-dotenv
-pytz 
+pytz
+requests 

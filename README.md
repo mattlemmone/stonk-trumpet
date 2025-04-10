@@ -1,70 +1,63 @@
 # Stonk Trumpet - Truth Social Sentiment Analyzer
 
-This Python application monitors a specified Truth Social account during configured hours, analyzes new posts ("statuses") for potential stock market impact using OpenAI, and logs notifications for statuses deemed to have significant positive impact.
+This Python application monitors a specified Truth Social account during configured hours, analyzes new posts ("statuses") for potential stock market impact using OpenAI, and sends notifications for statuses deemed to have significant market impact.
 
 ## Features
 
 - Polls a specific Truth Social user's statuses using the `truthbrush` library.
 - Operates only within a configurable time window (defaults to 7 AM - 11 PM ET).
 - Analyzes the sentiment of new statuses using OpenAI's API (specifically checking for positive/negative/neutral sentiment regarding stock market impact and whether the impact is significant).
-- Sends notifications (currently logged to the console) for statuses classified as having a significant positive impact.
+- Sends notifications via ntfy.sh for statuses classified as having significant positive or negative market impact.
 - Persistently tracks the last processed status ID to avoid reprocessing, ensuring continuity across restarts.
 - Configurable via environment variables or a `.env` file.
 
-## Setup
+## Configuration
 
-1.  **Clone the repository (or create the files):**
+Create a `.env` file in the project root directory with the following variables:
 
-    ```bash
-    # If you have a repo:
-    # git clone <your-repo-url>
-    # cd <your-repo-dir>
-    ```
+```dotenv
+TRUTHSOCIAL_USERNAME=your_truthsocial_username
+TRUTHSOCIAL_PASSWORD=your_truthsocial_password
+OPENAI_API_KEY=your_openai_api_key # Required for sentiment analysis
+NTFY_TOPIC=your_ntfy_topic         # Required for notifications
 
-2.  **Create a Python virtual environment (recommended):**
+# Optional: Override defaults
+# TARGET_HANDLE=some_other_handle  # Default: realDonaldTrump
+# POLL_START_HOUR=8                # Default: 7 (7 AM ET)
+# POLL_END_HOUR=22                 # Default: 23 (11 PM ET)
+# POLL_INTERVAL_SECONDS=600        # Default: 300 (5 minutes)
+```
 
-    ```bash
-    python -m venv venv
-    source venv/bin/activate # On Windows use `venv\Scripts\activate`
-    ```
+- Get an OpenAI API key from [https://openai.com/](https://openai.com/).
+- Ensure your Truth Social account is active.
+- Choose a unique ntfy.sh topic for receiving notifications.
 
-3.  **Install dependencies:**
+## Notifications with ntfy.sh
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+This application uses [ntfy.sh](https://ntfy.sh/) for sending push notifications when significant market impacts are detected. ntfy.sh is a simple HTTP-based pub-sub notification service that:
 
-4.  **Create a `.env` file:**
-    Create a file named `.env` in the project root directory and add your credentials and any desired configuration overrides:
+- Requires no registration
+- Works with any device that can receive web push notifications
+- Can be used with the ntfy mobile app or web browser
 
-    ```dotenv
-    TRUTHSOCIAL_USERNAME=your_truthsocial_username
-    TRUTHSOCIAL_PASSWORD=your_truthsocial_password
-    OPENAI_API_KEY=your_openai_api_key # Required for sentiment analysis
+To receive notifications:
 
-    # Optional: Override defaults
-    # TARGET_HANDLE=some_other_handle # Default: realDonaldTrump
-    # POLL_START_HOUR=8                 # Default: 7 (7 AM ET)
-    # POLL_END_HOUR=22                  # Default: 23 (11 PM ET)
-    # POLL_INTERVAL_SECONDS=600         # Default: 300 (5 minutes)
-    ```
+1. Set a unique `NTFY_TOPIC` in your `.env` file
+2. Subscribe to your topic via:
+   - Web browser: Visit `https://ntfy.sh/YOUR_TOPIC`
+   - Mobile app: Download the ntfy app from [Google Play](https://play.google.com/store/apps/details?id=io.heckel.ntfy) or [App Store](https://apps.apple.com/us/app/ntfy/id1625396347) and subscribe to your topic
 
-    - Get an OpenAI API key from [https://openai.com/](https://openai.com/).
-    - Ensure your Truth Social account is active.
+Notifications include:
+
+- Market impact type (positive/negative)
+- Username of the poster
+- Timestamp
+- Content snippet
+- AI reasoning for the market impact assessment
 
 ## Running the Application
 
-Simply run the `main.py` script:
-
-```bash
-python main.py
-```
-
-The application will start logging its activity to the console. It will check for new statuses from the `TARGET_HANDLE` every `POLL_INTERVAL_SECONDS` seconds, but only perform fetching and analysis between `POLL_START_HOUR` and `POLL_END_HOUR` (Eastern Time).
-
-- New statuses are processed and analyzed.
-- The ID of the last processed status is stored in `last_processed_id.txt`.
-- Significant positive statuses trigger a notification log message.
+Simply run the `main.py` script. The application will start logging its activity to the console and will send notifications via ntfy.sh when significant market impacts are detected.
 
 To stop the application gracefully, press `Ctrl+C`. This will save the last processed ID before exiting.
 
@@ -79,6 +72,6 @@ The application stores the ID of the most recent status it has processed in the 
 - **Target User:** Change `TARGET_HANDLE` in your `.env` file.
 - **Polling Window:** Adjust `POLL_START_HOUR` and `POLL_END_HOUR` (0-23) in `.env`.
 - **Polling Frequency:** Change `POLL_INTERVAL_SECONDS` in `.env`.
-- **Notification Method:** Modify the `send_notification` function in `main.py` to use services like Twilio for SMS, `smtplib` for email, or other notification platforms instead of just logging.
+- **Notification Topic:** Change `NTFY_TOPIC` in `.env` to use a different notification channel.
 - **Analysis Model:** Change the `model` parameter in the `analyze_sentiment` function (e.g., to `"gpt-4"`) if desired.
 - **Analysis Prompt:** Refine the `system_prompt` in `analyze_sentiment` to tailor the analysis criteria.

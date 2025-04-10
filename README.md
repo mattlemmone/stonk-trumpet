@@ -2,6 +2,10 @@
 
 This Python application monitors a specified Truth Social account during configured hours, analyzes new posts ("statuses") for potential stock market impact using OpenAI, and sends notifications for statuses deemed to have significant market impact.
 
+![CleanShot 2025-04-10 at 15 02 49@2x](https://github.com/user-attachments/assets/8d53092d-019e-419d-8778-0b6148193cf8)
+![CleanShot 2025-04-10 at 15 03 14@2x](https://github.com/user-attachments/assets/8685c426-b41c-43bc-abcc-0c7927c69759)
+
+
 ## Features
 
 - Polls a specific Truth Social user's statuses using the `truthbrush` library.

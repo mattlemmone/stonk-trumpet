@@ -1,82 +1,84 @@
-# Stonk Trumpet 🎺
+# Stonk Trumpet - Truth Social Sentiment Analyzer
 
-A Go application that monitors Truth Social statuses (tweets) from a specific account, analyzes their sentiment regarding potential stock market impact using OpenAI, and sends notifications for significant findings.
+This Python application monitors a specified Truth Social account during configured hours, analyzes new posts ("statuses") for potential stock market impact using OpenAI, and logs notifications for statuses deemed to have significant positive impact.
 
-## Features (Planned)
+## Features
 
-- Polls a Truth Social account's status endpoint for new tweets.
-- Operates only during specified hours (e.g., 7am - midnight Eastern Time).
-- Uses OpenAI's API to analyze the sentiment of fetched tweets.
-- Classifies tweets as positive, negative, or neutral regarding stock market relevance.
-- Sends notifications (e.g., Log, SMS - planned) for relevant, positive tweets.
-- Tracks processed tweets using their unique IDs to prevent duplicate processing.
-- Persists the list of processed tweets across application restarts.
-- Runs as a continuous server application.
+- Polls a specific Truth Social user's statuses using the `truthbrush` library.
+- Operates only within a configurable time window (defaults to 7 AM - 11 PM ET).
+- Analyzes the sentiment of new statuses using OpenAI's API (specifically checking for positive/negative/neutral sentiment regarding stock market impact and whether the impact is significant).
+- Sends notifications (currently logged to the console) for statuses classified as having a significant positive impact.
+- Persistently tracks the last processed status ID to avoid reprocessing, ensuring continuity across restarts.
+- Configurable via environment variables or a `.env` file.
 
-## Getting Started
+## Setup
 
-### Prerequisites
+1.  **Clone the repository (or create the files):**
 
-- Go (version 1.21 or later recommended)
-- Access to OpenAI API (requires an API key)
-- (Optional) Access to a notification service like Twilio for SMS.
-
-### Configuration
-
-1.  Copy `config.example.yaml` to `config.yaml`.
-2.  Edit `config.yaml` and fill in the required values:
-    - `account_id`: The Truth Social account ID to monitor (e.g., `107780257626128497` for @realDonaldTrump).
-    - (Optional) Customize `poll_interval_sec`, `notify_method`, `notify_target`, `persistence_file`, `timezone`.
-3.  Set your OpenAI API key as an environment variable:
     ```bash
-    export OPENAI_API_KEY=your_openai_api_key
+    # If you have a repo:
+    # git clone <your-repo-url>
+    # cd <your-repo-dir>
     ```
-    Alternatively, you can include it in the config file as `openai_key`, but using an environment variable is more secure.
 
-### Building
+2.  **Create a Python virtual environment (recommended):**
 
-```bash
-go build ./cmd/server
-```
+    ```bash
+    python -m venv venv
+    source venv/bin/activate # On Windows use `venv\Scripts\activate`
+    ```
 
-This will create an executable named `server` (or `server.exe` on Windows) in the current directory.
+3.  **Install dependencies:**
 
-### Running
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-```bash
-./server
-# Or run directly without building:
-# go run ./cmd/server/main.go
-```
+4.  **Create a `.env` file:**
+    Create a file named `.env` in the project root directory and add your credentials and any desired configuration overrides:
 
-The application will start, load the configuration, initialize components, and begin polling according to the schedule and time restrictions defined in the configuration.
+    ```dotenv
+    TRUTHSOCIAL_USERNAME=your_truthsocial_username
+    TRUTHSOCIAL_PASSWORD=your_truthsocial_password
+    OPENAI_API_KEY=your_openai_api_key # Required for sentiment analysis
 
-#### Testing with Mock Mode
+    # Optional: Override defaults
+    # TARGET_HANDLE=some_other_handle # Default: realDonaldTrump
+    # POLL_START_HOUR=8                 # Default: 7 (7 AM ET)
+    # POLL_END_HOUR=22                  # Default: 23 (11 PM ET)
+    # POLL_INTERVAL_SECONDS=600         # Default: 300 (5 minutes)
+    ```
 
-For testing without making real API calls to Truth Social or OpenAI, you can enable mock mode:
+    - Get an OpenAI API key from [https://openai.com/](https://openai.com/).
+    - Ensure your Truth Social account is active.
 
-```bash
-MOCK_MODE=true go run ./cmd/server/main.go
-```
+## Running the Application
 
-In mock mode:
-
-- The fetcher generates fake Truth Social statuses instead of calling the real API
-- The analyzer uses a simple keyword-based approach instead of calling OpenAI
-- This is useful for testing and development when you don't want to use your API quota
-
-## Development
-
-### Running Tests
+Simply run the `main.py` script:
 
 ```bash
-go test ./...
+python main.py
 ```
 
-### Dependencies
+The application will start logging its activity to the console. It will check for new statuses from the `TARGET_HANDLE` every `POLL_INTERVAL_SECONDS` seconds, but only perform fetching and analysis between `POLL_START_HOUR` and `POLL_END_HOUR` (Eastern Time).
 
-Dependencies are managed using Go Modules. They will be downloaded automatically when building or testing.
+- New statuses are processed and analyzed.
+- The ID of the last processed status is stored in `last_processed_id.txt`.
+- Significant positive statuses trigger a notification log message.
 
-- (Planned) `github.com/spf13/viper` for configuration management.
-- (Planned) `github.com/sashabaranov/go-openai` for OpenAI interaction.
-- (Planned) `github.com/twilio/twilio-go` for Twilio SMS notifications.
+To stop the application gracefully, press `Ctrl+C`. This will save the last processed ID before exiting.
+
+## How Persistence Works
+
+The application stores the ID of the most recent status it has processed in the `last_processed_id.txt` file. When starting, it reads this ID. When fetching new statuses, it only processes statuses with an ID greater than the stored one (assuming IDs are chronologically sortable).
+
+**Important Note:** This method assumes status IDs are reliably sequential or sortable. It also means if the script is stopped for a long time, it might miss statuses if more than the API's page limit (typically 20-40) were posted during the downtime. A more robust solution would involve storing all processed IDs or using API features like `since_id` if available and reliable in `truthbrush`.
+
+## Customization
+
+- **Target User:** Change `TARGET_HANDLE` in your `.env` file.
+- **Polling Window:** Adjust `POLL_START_HOUR` and `POLL_END_HOUR` (0-23) in `.env`.
+- **Polling Frequency:** Change `POLL_INTERVAL_SECONDS` in `.env`.
+- **Notification Method:** Modify the `send_notification` function in `main.py` to use services like Twilio for SMS, `smtplib` for email, or other notification platforms instead of just logging.
+- **Analysis Model:** Change the `model` parameter in the `analyze_sentiment` function (e.g., to `"gpt-4"`) if desired.
+- **Analysis Prompt:** Refine the `system_prompt` in `analyze_sentiment` to tailor the analysis criteria.

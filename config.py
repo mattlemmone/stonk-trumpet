@@ -34,10 +34,10 @@ class Config:
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         
         # Application settings
-        self.target_handle = os.getenv("TARGET_HANDLE", "realDonaldTrump")
+        self.target_handle = os.getenv("TARGET_HANDLE")
         self.ntfy_topic = os.getenv("NTFY_TOPIC")
-        self.last_processed_id_file = "last_processed_id.txt"
-        self.eastern_timezone = pytz.timezone('US/Eastern')
+        self.storage_file = os.getenv("STORAGE_FILE")
+        self.timezone = os.getenv("TIMEZONE")
         
         # Polling configuration
         try:
@@ -57,8 +57,16 @@ class Config:
             
     def validate(self):
         """Validate critical configuration settings"""
-        if not self.truthsocial_username or not self.truthsocial_password:
-            raise ValueError("TRUTHSOCIAL_USERNAME and TRUTHSOCIAL_PASSWORD must be set")
-            
-        if not self.openai_api_key:
-            raise ValueError("OPENAI_API_KEY environment variable must be set") 
+        required_settings = {
+            "TRUTHSOCIAL_USERNAME": self.truthsocial_username,
+            "TRUTHSOCIAL_PASSWORD": self.truthsocial_password,
+            "OPENAI_API_KEY": self.openai_api_key,
+            "TARGET_HANDLE": self.target_handle,
+            "NTFY_TOPIC": self.ntfy_topic,
+            "TIMEZONE": self.timezone
+        }
+        
+        for name, value in required_settings.items():
+            if not value:
+                print(f"{name} must be set")
+                raise ValueError(f"{name} must be set")

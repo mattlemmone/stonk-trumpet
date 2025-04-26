@@ -2,16 +2,18 @@ import logging
 import datetime
 import time
 
+import pytz
+
 class Scheduler:
-    def __init__(self, config):
-        self.poll_start_hour = config.poll_start_hour
-        self.poll_end_hour = config.poll_end_hour
-        self.poll_interval_seconds = config.poll_interval_seconds
-        self.eastern_timezone = config.eastern_timezone
+    def __init__(self, poll_start_hour, poll_end_hour, poll_interval_seconds, timezone):
+        self.poll_start_hour = poll_start_hour
+        self.poll_end_hour = poll_end_hour
+        self.poll_interval_seconds = poll_interval_seconds
+        self.timezone = pytz.timezone(timezone)
         
     def is_within_polling_hours(self):
         """Check if the current time is within the allowed polling hours in ET."""
-        now_et = datetime.datetime.now(self.eastern_timezone)
+        now_et = datetime.datetime.now(self.timezone)
         return self.poll_start_hour <= now_et.hour < self.poll_end_hour
         
     def sleep_until_next_run(self):
@@ -28,7 +30,7 @@ class Scheduler:
             time.sleep(self.poll_interval_seconds)
             return self.poll_interval_seconds
         else:
-            now = datetime.datetime.now(self.eastern_timezone)
+            now = datetime.datetime.now(self.timezone)
             start_time_today = now.replace(hour=self.poll_start_hour, minute=0, second=0, microsecond=0)
             start_time_tomorrow = start_time_today + datetime.timedelta(days=1)
             next_run_time = start_time_today if now < start_time_today else start_time_tomorrow

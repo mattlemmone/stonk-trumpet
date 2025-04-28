@@ -47,12 +47,15 @@ class SentimentAnalyzer:
                 significant (bool): True if the sentiment is significant, False otherwise
                 reasoning (str): A brief explanation of the reasoning
         """
+        if not status_text_html or not status_text_html.strip():
+            logging.info("Empty input text received for sentiment analysis; returning default values.")
+            return "neutral", False, ""
+
         log_text = status_text_html[:150] + ('...' if len(status_text_html) > 150 else '')
         logging.info(f"Analyzing HTML content: '{log_text}'")
         sentiment = "neutral"
         significant = False
         reasoning = ""
-
 
         try:
             response = self.open_api_client.chat.completions.create(

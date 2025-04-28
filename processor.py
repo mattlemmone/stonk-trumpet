@@ -40,8 +40,14 @@ class StatusProcessor:
                 status_text_html = status.get('content', '')
 
                 if status_text_html:
+                    # Remove <p> and </p> tags if present
+                    if status_text_html.startswith('<p>') and status_text_html.endswith('</p>'):
+                        status_text = status_text_html[3:-4]
+                    else:
+                        status_text = status_text_html
+
                     # Analyze sentiment
-                    sentiment, significant, reasoning = self.sentiment_analyzer.analyze(status_text_html)
+                    sentiment, significant, reasoning = self.sentiment_analyzer.analyze(status_text)
                     
                     # Send notification if significant
                     if significant and (sentiment == "positive" or sentiment == "negative"):

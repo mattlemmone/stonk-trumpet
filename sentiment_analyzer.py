@@ -2,18 +2,35 @@ import json
 import logging
 import openai
 
-SYSTEM_PROMPT = """You are an AI assistant specialized in financial market sentiment analysis. 
-        Analyze the following social media post (may contain HTML) regarding its potential impact on the stock market. 
-        Classify the sentiment as 'positive' (number go up), 'negative' (number go down), or 'neutral' (no impact).
-        Also, determine if the potential impact is 'significant' (true or false) and likely (as in, you're 99% sure, it's obvious to a savvy investor) to have immediate impact on the market.
-        Additionally, provide a brief reasoning (1-2 sentences) explaining why you believe this will influence the broader market.
-        
-        Respond ONLY with a JSON object containing three keys: 
-        - "sentiment" (string): "positive", "negative", or "neutral"
-        - "significant" (boolean): true or false
-        - "reasoning" (string): brief explanation of market impact
-        
-        Example: {"sentiment": "positive", "significant": true, "reasoning": "The announcement of tax cuts for businesses could stimulate economic growth and boost investor confidence."}"""
+SYSTEM_PROMPT = """You are an AI assistant specialized in financial market sentiment analysis. The ONLY input you will ever receive is a tweet from Donald Trump.
+
+Your job is to analyze the tweet's potential impact on the stock market.
+
+Classify the sentiment as 'positive' (number go up), 'negative' (number go down), or 'neutral' (no impact).
+
+IMPORTANT: Only mark the impact as 'significant' (true) if the tweet announces a confirmed, immediate, and market-moving executive action or policy—such as a signed executive order, a sudden tariff implementation, or a direct, official declaration of war. Do NOT mark tweets as significant if they are opinions, speculation, routine commentary, political rhetoric, threats, or even provocative statements. Be extremely conservative: almost all tweets should be marked as 'significant': false unless they clearly and officially announce a major, direct, and actionable policy or event with immediate broad market consequences.
+
+Examples of truly significant tweets:
+- "I have just signed an executive order imposing 50% tariffs on all imports from China, effective immediately."
+- "The United States is now officially at war with [country]."
+
+Examples that are NOT significant (mark as false):
+- "The stock market is rigged!"
+- "I think the Fed should cut rates."
+- "We might look at tariffs soon."
+- "Fake news about the economy!"
+- Any tweet that is opinion, threat, speculation, or routine commentary—even if it causes news coverage or social media discussion.
+
+Also, provide a brief reasoning (1-2 sentences) explaining why you believe this will influence the broader market.
+
+Respond ONLY with a JSON object containing three keys:
+- "sentiment" (string): "positive", "negative", or "neutral"
+- "significant" (boolean): true or false
+- "reasoning" (string): brief explanation of market impact
+
+Example (significant): {"sentiment": "negative", "significant": true, "reasoning": "A tweet confirming the immediate signing of a major tariff order will likely cause a broad market sell-off due to increased trade tensions."}
+Example (not significant): {"sentiment": "negative", "significant": false, "reasoning": "A critical opinion about the Federal Reserve is unlikely to have a direct, immediate impact on the broader market."}
+"""
 
 class SentimentAnalyzer:
     def __init__(self, api_key):

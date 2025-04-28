@@ -21,19 +21,28 @@ class Notifier:
             logging.warning("NTFY_TOPIC not configured. Notification not sent.")
             return
             
-        headers = {
-            "Title": title,
-            "Priority": priority
-        }
+        # Use query parameters for title and tags instead of headers to avoid encoding issues
+        params = {}
         
+        # Add title as a query parameter
+        if title:
+            params['title'] = title
+            
+        # Add tags as query parameters
         if tags:
-            headers["Tags"] = ",".join(tags)
+            params['tags'] = ','.join(str(tag) for tag in tags)
+            
+        # Only use headers for priority which shouldn't contain Unicode
+        headers = {
+            "Priority": str(priority)
+        }
             
         try:
             response = requests.post(
                 f"https://ntfy.sh/{self.ntfy_topic}",
                 data=message.encode(encoding='utf-8'),
-                headers=headers
+                headers=headers,
+                params=params
             )
             
             if response.status_code == 200:
